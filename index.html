@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>David Duong's Home Page</title>
+    <link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="../styles/layoutstyles.css">
+</head>
+<body class="homebg">
+    <div class="common header">
+    <span class="subheader">
+        <a href="#">Home</a> |
+        <a href="html/resume.html">Resume</a> |
+        <a href="html/aboutme.html">About Me</a>
+    </span>
+    </div>
+
+    <h1>Home Page</h1>
+    <img src="Images/David_Duong_BYU_2025_Profile.webp" alt="David Duong BYU 2025 Profile" height="150">
+    <h2>Tableau Dashboard</h2>
+        <h5>Below is my live embedded Tableau Graph</h5>
+        <div class='tableauPlaceholder' id='viz1743197508538' style='position: relative'>
+            <noscript>
+                <a href='#'><img alt='Quarterly Job Posting Trend (Remote vs. Non-Remote) ' src='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;Da&#47;DavidDuongTableauProject&#47;Sheet8&#47;1_rss.png' style='border: none' />
+                </a>
+            </noscript>
+            <object class='tableauViz'  style='display:none;'>
+                <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' /> 
+                <param name='embed_code_version' value='3' /> 
+                <param name='site_root' value='' />
+                <param name='name' value='DavidDuongTableauProject&#47;Sheet8' />
+                <param name='tabs' value='no' />
+                <param name='toolbar' value='yes' />
+                <param name='static_image' 
+                value='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;Da&#47;DavidDuongTableauProject&#47;Sheet8&#47;1.png' /> 
+                <param name='animate_transition' value='yes' />
+                <param name='display_static_image' value='yes' />
+                <param name='display_spinner' value='yes' />
+                <param name='display_overlay' value='yes' />
+                <param name='display_count' value='yes' />
+                <param name='language' value='en-US' />
+                <param name='filter' value='publish=yes' />
+            </object>
+        </div>                
+        
+        <script type='text/javascript'>                    
+            var divElement = document.getElementById('viz1743197508538');                    
+            var vizElement = divElement.getElementsByTagName('object')[0];                    
+            
+                vizElement.style.width='75%';
+                vizElement.style.height=(divElement.offsetWidth*0.25)+'px';                    
+            var scriptElement = document.createElement('script');                
+            scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';                    
+            vizElement.parentNode.insertBefore(scriptElement, vizElement);                
+        </script>
+
+<style>
+    canvas {
+        background: rgba(0, 255, 221, 0.489);
+        display: left;
+        margin: 0 auto;
+    }
+    #score {
+        text-align: left;
+        font-size: 24px;
+        margin-top: 10px;
+    }
+    #timer {
+        text-align: left;
+        font-size: 20px;
+        margin-top: 5px;
+    }
+    #restartButton {
+        display: none;
+        text-align: left;
+        margin-top: 20px;
+    }
+</style>
+</head>
+<body>
+<h2>Tennis Rally Game</h2>
+<h4>Use the Up and Down Arrow keys to move your racket and keep the ball in play!</h4>
+<h4>Try to get the longest rally possible!</h4>
+<h4>Click the Restart Game button to try again!</h4>
+<canvas id="gameCanvas" width="600" height="400"></canvas>
+<div id="score">Player: 0 - Opponent: 0</div>
+<div id="timer">Rally Time: 0.0s</div>
+<div id="restartButton">
+    <button onclick="restartGame()">Restart Game</button>
+</div>
+
+<script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const racketWidth = 10;
+    const racketHeight = 50;
+    const ballSize = 10;
+
+    let playerY = canvas.height / 2 - racketHeight / 2;
+    let opponentY = canvas.height / 2 - racketHeight / 2;
+    let ballX = canvas.width / 2;
+    let ballY = canvas.height / 2;
+    let ballSpeedX = 5;  // Set initial speed to 5
+    let ballSpeedY = 1;  // Set initial speed to 1
+    let playerScore = 0;
+    let opponentScore = 0;
+    let gameEnded = false;
+    let rallyStartTime = null; // Variable to store the time the rally started
+    let rallyTime = 0; // Variable to track rally time in seconds
+    let gameInterval; // Global variable to store the interval reference
+
+    document.addEventListener("keydown", moveRacket);
+    document.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        e.preventDefault(); // Prevents the page from scrolling
+        moveRacket(e);
+    }
+});
+
+    function moveRacket(e) {
+        if (gameEnded) return; // Prevent movement if the game has ended
+
+        if (e.key === "ArrowUp" && playerY > 0) {
+            playerY -= 20;
+        } else if (e.key === "ArrowDown" && playerY < canvas.height - racketHeight) {
+            playerY += 20;
+        }
+    }
+
+    function drawRacket(x, y) {
+        ctx.fillStyle = "black"; // Set racket color to black
+        ctx.fillRect(x, y, racketWidth, racketHeight);
+    }
+
+    function drawBall(x, y) {
+        ctx.fillStyle = "yellow"; // Set ball color to yellow
+        ctx.beginPath();
+        ctx.arc(x, y, ballSize, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    function updateGame() {
+        if (gameEnded) return; // Stop the game update if it has ended
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Start the timer when the game begins (first rally)
+        if (!rallyStartTime) {
+            rallyStartTime = Date.now(); // Store the time the rally starts
+        }
+
+        // Move ball
+        ballX += ballSpeedX;
+        ballY += ballSpeedY;
+
+        // Ball collision with top and bottom walls
+        if (ballY <= 0 || ballY >= canvas.height) {
+            ballSpeedY = -ballSpeedY;
+        }
+
+        // Ball collision with player racket
+        if (ballX <= racketWidth && ballY > playerY && ballY < playerY + racketHeight) {
+            ballSpeedX = -ballSpeedX;
+        }
+
+        // Ball collision with opponent racket
+        if (ballX >= canvas.width - racketWidth - ballSize && ballY > opponentY && ballY < opponentY + racketHeight) {
+            ballSpeedX = -ballSpeedX;
+        }
+
+        // Ball out of bounds (opponent scores)
+        if (ballX < 0) {
+            opponentScore++;
+            if (opponentScore === 1) {
+                endGame(); // End the game if the opponent wins 1 point
+            } else {
+                resetBall();
+            }
+        } else if (ballX > canvas.width) {
+            playerScore++;
+            resetBall();
+        }
+
+        // Opponent AI (moves directly towards the ball)
+        if (ballY > opponentY + racketHeight / 2) {
+            opponentY += 5; // Move down towards the ball
+        } else if (ballY < opponentY + racketHeight / 2) {
+            opponentY -= 5; // Move up towards the ball
+        }
+
+        // Ensure opponent doesn't move out of bounds
+        if (opponentY < 0) opponentY = 0;
+        if (opponentY > canvas.height - racketHeight) opponentY = canvas.height - racketHeight;
+
+        // Update the rally timer if the game is not ended
+        if (rallyStartTime) {
+            rallyTime = (Date.now() - rallyStartTime) / 1000; // Calculate elapsed time in seconds
+        }
+
+        // Draw everything
+        drawRacket(0, playerY);
+        drawRacket(canvas.width - racketWidth, opponentY);
+        drawBall(ballX, ballY);
+        document.getElementById("score").innerText = `Player: ${playerScore} - Opponent: ${opponentScore}`;
+        document.getElementById("timer").innerText = formatTime(rallyTime); // Display rally time
+    }
+
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return minutes > 0
+            ? `Rally Time: ${minutes}m ${remainingSeconds}s`
+            : `Rally Time: ${remainingSeconds}s`;
+    }
+
+    function resetBall() {
+        ballX = canvas.width / 2;
+        ballY = canvas.height / 2;
+        // Reset ball speed to the specified values on restart
+        ballSpeedX = 5; 
+        ballSpeedY = 1; 
+    }
+
+    function endGame() {
+        gameEnded = true; // Stop the game
+        alert(`The game lasted ${rallyTime.toFixed(1)} seconds. Try To Get A Longer Rally!`);
+        document.getElementById("score").innerText = "Game Over! Try To Get A Longer Rally!";
+        document.getElementById("timer").innerText = `Final Rally Time: ${rallyTime.toFixed(1)}s`;
+        document.getElementById("restartButton").style.display = "block"; // Show the restart button
+    }
+
+    function restartGame() {
+        // Reset all variables
+        playerScore = 0;
+        opponentScore = 0;
+        ballX = canvas.width / 2;
+        ballY = canvas.height / 2;
+        // Reset the speed of the ball to 5 for X and 1 for Y
+        ballSpeedX = 5;
+        ballSpeedY = 1;
+        playerY = canvas.height / 2 - racketHeight / 2;
+        opponentY = canvas.height / 2 - racketHeight / 2;
+        rallyStartTime = null;
+        rallyTime = 0;
+        gameEnded = false;
+
+        // Clear the previous interval if it exists
+        clearInterval(gameInterval);
+
+        // Hide the restart button and reset the score and timer display
+        document.getElementById("restartButton").style.display = "none";
+        document.getElementById("score").innerText = "Player: 0 - Opponent: 0";
+        document.getElementById("timer").innerText = "Rally Time: 0.0s";
+
+        // Start the game loop again
+        gameInterval = setInterval(updateGame, 1000 / 60);  // Update the game every 1/60 second
+    }
+
+    // Start the game loop initially
+    gameInterval = setInterval(updateGame, 1000 / 60);  // Update the game every 1/60 second
+</script>
+
+    <p>
+        See my <a href="https://dd7196.github.io/IS201/" target="_blank" title="David Duong Professional Page">Professional Page</a>
+    </p>
+    <a href="#top">Back to Top</a>
+</body>
+</html>
